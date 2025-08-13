@@ -3,7 +3,7 @@
   "name": "TabChat",
   "short_name": "TabChat",
   "version": "0.3.0",
-  "description": "覆盖新标签页：时间+输入；Enter 搜索，Ctrl+Enter AI（硅基流动）。支持流式、对话记忆、Markdown、设置。",
+  "description": "TabChat 是一个覆盖新标签页的轻量级“搜索 + AI 对话”扩展。顶部显示时间，底部为输入栏：按 Enter 用默认搜索引擎；按 Ctrl+Enter 让本地配置的 AI 模型进行流式回复。",
   "minimum_chrome_version": "114",
   "chrome_url_overrides": {
     "newtab": "index.html"
