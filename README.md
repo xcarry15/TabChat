@@ -137,7 +137,7 @@
 {
   "manifest_version": 3,
   "name": "New Tab Chat",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "chrome_url_overrides": { "newtab": "index.html" },
   "permissions": ["storage", "search"],
   "host_permissions": ["https://api.siliconflow.cn/*"]

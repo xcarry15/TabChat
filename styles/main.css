@@ -206,6 +206,14 @@ textarea#input::placeholder {
   box-shadow: var(--shadow);
 }
 
+/* AI 进行中：临时关闭昂贵的模糊以减轻重绘压力 */
+.ai-busy .chat-bar,
+.ai-busy .output,
+.ai-busy dialog#settingsDialog {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
 .output-controls {
   display: flex;
   gap: 8px;

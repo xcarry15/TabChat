@@ -14,6 +14,7 @@ function setBusy(busy) {
   aiBtn.disabled = !!busy;
   searchBtn.disabled = !!busy;
   if (aiControls) aiControls.hidden = !busy;
+  try { document.documentElement.classList.toggle('ai-busy', !!busy); } catch (_) {}
 }
 
 function showError(msg) {
@@ -42,17 +43,44 @@ async function doAI(text) {
   showError('');
   setBusy(true);
   let buffered = '';
-  const flush = () => {
-    if (content) content.innerHTML = window.renderMarkdown ? window.renderMarkdown(buffered) : buffered;
-    output.scrollTop = output.scrollHeight;
+  const FLUSH_INTERVAL_MS = 80;
+  let flushTimer = null;
+
+  const isAtBottom = (el, threshold = 8) => {
+    if (!el) return false;
+    return (el.scrollHeight - el.clientHeight - el.scrollTop) <= threshold;
   };
+
+  const flushStream = () => {
+    if (!content) return;
+    const stickToBottom = isAtBottom(output);
+    content.textContent = buffered;
+    requestAnimationFrame(() => {
+      if (stickToBottom) output.scrollTop = output.scrollHeight;
+    });
+  };
+
+  const scheduleFlush = () => {
+    if (flushTimer) return;
+    flushTimer = setTimeout(() => {
+      flushTimer = null;
+      flushStream();
+    }, FLUSH_INTERVAL_MS);
+  };
+
   await aiChat(text, (delta) => {
     buffered += delta;
-    // 简单节流：每次 delta 都刷新，体量较小
-    flush();
+    scheduleFlush();
   }, (errMsg) => {
     showError(errMsg);
   }, () => {
+    if (flushTimer) { clearTimeout(flushTimer); flushTimer = null; }
+    // 最终一次性做 Markdown 渲染，避免流式阶段的频繁重排
+    if (content) content.innerHTML = window.renderMarkdown ? window.renderMarkdown(buffered) : buffered;
+    const stickToBottom = isAtBottom(output);
+    requestAnimationFrame(() => {
+      if (stickToBottom) output.scrollTop = output.scrollHeight;
+    });
     setBusy(false);
   });
 }

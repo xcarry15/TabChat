@@ -1,0 +1,5 @@
+打包命令：
+
+$ver = '0.2.0'
+Compress-Archive -Path index.html, manifest.json, scripts, styles -DestinationPath ..\tabchat-$ver.zip -Force
+
