@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>New Tab Chat</title>
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+  <canvas id="bg" aria-hidden="true"></canvas>
+  <button id="settingsBtn" class="btn btn-neutral settings-floating" title="设置" aria-label="设置">设置</button>
+  <main id="app" aria-live="polite">
+    <section id="clock" aria-label="当前时间">
+      <div id="clock-time" role="timer" aria-live="polite">--:--</div>
+      <div id="clock-date" aria-hidden="false">----</div>
+    </section>
+
+    <section id="chat" aria-label="聊天与搜索">
+      <div class="chat-bar">
+        <textarea id="input" rows="1" placeholder="输入内容后 按 Enter 搜索，Ctrl+Enter 由 AI 回复" aria-label="输入框"></textarea>
+        <div class="actions">
+          <button id="searchBtn" class="btn btn-primary" title="Enter 搜索" aria-label="搜索">搜索</button>
+          <button id="aiBtn" class="btn btn-primary" title="Ctrl+Enter AI" aria-label="AI 回复">AI</button>
+        </div>
+      </div>
+      <div id="aiOutput" class="output" aria-live="polite" hidden></div>
+      <div id="error" class="error" role="alert" aria-live="assertive" hidden></div>
+    </section>
+  </main>
+
+  <dialog id="settingsDialog" aria-label="设置">
+    <form method="dialog" id="settingsForm">
+      <h2>设置</h2>
+      <label>
+        Base URL
+        <input id="baseUrl" type="url" placeholder="https://api.siliconflow.cn/v1">
+      </label>
+      <label>
+        API Key
+        <input id="apiKey" type="password" placeholder="粘贴你的 API Key">
+      </label>
+      <label>
+        模型
+        <input id="model" type="text" placeholder="deepseek-ai/DeepSeek-V2.5">
+      </label>
+      <label>
+        超时（秒）
+        <input id="timeout" type="number" min="5" max="120" step="1" placeholder="30">
+      </label>
+      <menu>
+        <button value="cancel">取消</button>
+        <button id="saveSettings" value="default">保存</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <script src="scripts/background.js" defer></script>
+  <script src="scripts/time.js" defer></script>
+  <script src="scripts/settings.js" defer></script>
+  <script src="scripts/ai.js" defer></script>
+  <script src="scripts/chat.js" defer></script>
+</body>
+<!-- 首次加载：Chrome 扩展 → 开发者模式 → 加载已解压 → 选择本目录 -->
+</html>
+

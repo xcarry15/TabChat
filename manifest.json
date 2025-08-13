@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "New Tab Chat",
+  "version": "0.1.0",
+  "description": "覆盖新标签页：顶部时间、底部输入；Enter 搜索，Ctrl+Enter AI 回复（SiliconFlow）。",
+  "minimum_chrome_version": "114",
+  "chrome_url_overrides": {
+    "newtab": "index.html"
+  },
+  "permissions": [
+    "storage",
+    "search"
+  ],
+  "host_permissions": [
+    "https://api.siliconflow.cn/*"
+  ]
+}
+

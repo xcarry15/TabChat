@@ -1,0 +1,302 @@
+:root {
+  /* macOS/iOS 风格色板（深色） */
+  --bg: #0b0b0c;
+  --fg: #ffffff;
+  --muted: #aeb3c2; /* 对应 secondaryLabel 近似 */
+  --accent: #5b8cff; /* 柔和蓝，降低饱和度与对比度 */
+  --error: #ff453a; /* iOS 系统红 */
+  --surface: #1c1c1e; /* 系统分组背景 */
+  --separator: #2c2c2e; /* 分隔线/描边 */
+  --ring: color-mix(in oklab, var(--accent) 60%, transparent);
+  --shadow: 0 0.5px 0.5px rgb(0 0 0 / 0.35), 0 6px 18px rgb(0 0 0 / 0.25);
+}
+
+/* 已移除浅色主题，仅保留深色主题变量 */
+
+html, body {
+  height: 100%;
+  overflow: hidden; /* 禁止页面滚动 */
+  overscroll-behavior: none;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Segoe UI, Roboto, Noto Sans SC, Helvetica, Arial, "Microsoft Yahei", "PingFang SC", sans-serif;
+}
+
+/* 全屏背景画布 */
+#bg {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  pointer-events: none; /* 不拦截交互 */
+}
+
+@supports (height: 100dvh) {
+  #bg {
+    height: 100dvh;
+  }
+}
+
+#app {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-height: 100vh;
+  height: 100vh; /* 填充视口高度 */
+}
+
+@supports (height: 100dvh) {
+  #app {
+    min-height: 100dvh;
+    height: 100dvh;
+  }
+}
+
+/* 顶部时间区域弱化，搜索居中 */
+#clock {
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding-top: 3vh;
+}
+
+#clock-time {
+  font-size: clamp(56px, 16vw, 160px);
+  letter-spacing: 0.02em;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
+}
+
+#clock-date {
+  margin-top: 8px;
+  font-size: clamp(14px, 2.2vw, 18px);
+  color: var(--muted);
+}
+
+#chat {
+  width: min(820px, 92vw);
+  margin: 0 auto;
+  display: grid;
+  align-content: start;
+  min-height: calc(100vh - 220px);
+  padding-top: 2vh; /* 再往上移一些 */
+}
+
+@supports (height: 100dvh) {
+  #chat {
+    min-height: calc(100dvh - 220px);
+  }
+}
+
+.chat-bar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  background: color-mix(in oklab, var(--surface) 92%, transparent);
+  -webkit-backdrop-filter: saturate(180%) blur(18px);
+  backdrop-filter: saturate(180%) blur(18px);
+  border: 1px solid var(--separator);
+  border-radius: 20px;
+  padding: 14px 14px 14px 16px;
+  box-shadow: var(--shadow);
+}
+
+/* 输入聚焦时，使用容器提供更优雅的聚焦指示 */
+.chat-bar:focus-within {
+  background: color-mix(in oklab, var(--surface) 96%, transparent);
+  border-color: color-mix(in oklab, var(--accent) 28%, var(--separator));
+  box-shadow: var(--shadow), 0 0 0 2px color-mix(in oklab, var(--accent) 18%, transparent);
+}
+
+textarea#input {
+  width: 100%;
+  resize: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--fg);
+  font-size: 16px;
+  line-height: 1.5;
+  max-height: 30vh;
+  caret-color: var(--accent);
+}
+
+/* 移除输入框自身焦点时的亮色边框（由容器提供视觉反馈） */
+textarea#input:focus,
+textarea#input:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+textarea#input::placeholder {
+  color: var(--muted);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* 统一按钮系统 */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 72px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 120ms ease, box-shadow 160ms ease, filter 120ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--accent) 94%, white) 0%,
+    color-mix(in oklab, var(--accent) 100%, black) 100%
+  );
+  color: #fff;
+  border-color: color-mix(in oklab, var(--accent) 36%, black);
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.25) inset,
+    0 1px 2px rgb(0 0 0 / 0.28),
+    0 6px 18px rgb(0 0 0 / 0.18);
+}
+
+.btn-neutral {
+  background: color-mix(in oklab, var(--surface) 86%, transparent);
+  color: var(--fg);
+  border-color: var(--separator);
+  box-shadow: 0 1px 0 rgb(255 255 255 / 0.15) inset, 0 1px 2px rgb(0 0 0 / 0.18);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--fg);
+  border-color: var(--separator);
+}
+
+.btn:not(:disabled):hover {
+  filter: brightness(1.06);
+}
+
+.btn:not(:disabled):active {
+  transform: translateY(1px) scale(0.995);
+  box-shadow: 0 0 0 rgb(0 0 0 / 0);
+}
+
+/* 强化主要按钮的悬停高光与按压反馈 */
+.btn-primary:not(:disabled):hover {
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.28) inset,
+    0 2px 6px rgb(0 0 0 / 0.28),
+    0 10px 26px color-mix(in oklab, var(--accent) 28%, transparent);
+}
+
+.btn-primary:not(:disabled):active {
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--accent) 88%, white) 0%,
+    color-mix(in oklab, var(--accent) 96%, black) 100%
+  );
+}
+
+.output {
+  margin-top: 12px;
+  padding: 14px 16px;
+  background: color-mix(in oklab, var(--surface) 96%, transparent);
+  -webkit-backdrop-filter: saturate(180%) blur(18px);
+  backdrop-filter: saturate(180%) blur(18px);
+  border-radius: 16px;
+  border: 1px solid var(--separator);
+  min-height: 24px;
+  white-space: pre-wrap;
+  box-shadow: var(--shadow);
+}
+/* 右上角悬浮主题按钮 */
+.theme-floating {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+}
+
+/* 右上角悬浮设置按钮 */
+.settings-floating {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+}
+
+.error {
+  margin-top: 10px;
+  color: var(--error);
+}
+
+dialog#settingsDialog::backdrop {
+  background: rgb(0 0 0 / 0.45);
+}
+
+dialog#settingsDialog {
+  border: 0;
+  border-radius: 20px;
+  padding: 16px 18px;
+  background: color-mix(in oklab, var(--surface) 96%, transparent);
+  -webkit-backdrop-filter: saturate(180%) blur(18px);
+  backdrop-filter: saturate(180%) blur(18px);
+  color: var(--fg);
+  width: min(560px, 92vw);
+  box-shadow: var(--shadow);
+}
+
+dialog#settingsDialog form {
+  display: grid;
+  gap: 12px;
+}
+
+dialog#settingsDialog input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--separator);
+  background: transparent;
+  color: var(--fg);
+  transition: box-shadow 120ms ease, border-color 120ms ease;
+}
+
+dialog#settingsDialog menu {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* 可访问性：聚焦可见（输入框改由容器高亮，不直接加亮边） */
+dialog#settingsDialog input:focus-visible,
+.actions button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ring);
+  border-color: color-mix(in oklab, var(--accent) 50%, var(--separator));
+}
+
+/* 减少动效偏好支持 */
+@media (prefers-reduced-motion: reduce) {
+  .actions button {
+    transition: none;
+  }
+}
+
