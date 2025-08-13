@@ -11,6 +11,23 @@
       .replace(/'/g, '&#39;');
   }
 
+  function splitTableRow(raw) {
+    const trimmed = raw.trim().replace(/^\|/, '').replace(/\|$/, '');
+    return trimmed.split('|').map((c) => c.trim());
+  }
+
+  function parseAlignments(raw) {
+    const cells = splitTableRow(raw);
+    return cells.map((c) => {
+      const t = c.replace(/\s+/g, '');
+      if (/^:\-{3,}:$/.test(t)) return 'center';
+      if (/^:\-{3,}$/.test(t)) return 'left';
+      if (/^\-{3,}:$/.test(t)) return 'right';
+      if (/^\-{3,}$/.test(t)) return 'left';
+      return 'left';
+    });
+  }
+
   function tokenize(text) {
     const lines = text.split(/\r?\n/);
     const tokens = [];
@@ -64,6 +81,45 @@
     let i = 0;
     while (i < lines.length) {
       const line = lines[i];
+      // 引用块 >
+      if (/^\s*>\s?/.test(line)) {
+        const quoted = [];
+        while (i < lines.length && /^\s*>\s?/.test(lines[i])) {
+          quoted.push(lines[i].replace(/^\s*>\s?/, ''));
+          i++;
+        }
+        out.push(`<blockquote>${renderBlocks(quoted.join('\n'))}</blockquote>`);
+        continue;
+      }
+      // 表格（GFM 简化版）
+      if (i + 1 < lines.length) {
+        const headerLine = lines[i];
+        const alignLine = lines[i + 1];
+        const isHeader = /\|/.test(headerLine);
+        const isAlign = /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(alignLine);
+        if (isHeader && isAlign) {
+          const headerCells = splitTableRow(headerLine);
+          const alignments = parseAlignments(alignLine);
+          const rows = [];
+          i += 2;
+          while (i < lines.length && /\|/.test(lines[i]) && !/^\s*$/.test(lines[i])) {
+            rows.push(splitTableRow(lines[i]));
+            i++;
+          }
+          const thead = `<thead><tr>${headerCells.map((h, idx) => {
+            const a = alignments[idx] || 'left';
+            const style = a === 'left' ? '' : ` style="text-align:${a}"`;
+            return `<th${style}>${renderInline(h)}</th>`;
+          }).join('')}</tr></thead>`;
+          const tbody = `<tbody>${rows.map((r) => `<tr>${r.map((c, idx) => {
+            const a = alignments[idx] || 'left';
+            const style = a === 'left' ? '' : ` style="text-align:${a}"`;
+            return `<td${style}>${renderInline(c)}</td>`;
+          }).join('')}</tr>`).join('')}</tbody>`;
+          out.push(`<div class="table-container"><table>${thead}${tbody}</table></div>`);
+          continue;
+        }
+      }
       // 标题 #
       const h = line.match(/^(#{1,6})\s+(.*)$/);
       if (h) {

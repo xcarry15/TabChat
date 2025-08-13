@@ -2,7 +2,35 @@ let isComposing = false;
 
 function autoResizeTextArea(el) {
   el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, window.innerHeight * 0.3) + 'px';
+  el.style.height = Math.min(el.scrollHeight, window.innerHeight * 0.15) + 'px';
+}
+
+function __clearAiBusyClass() {
+  try {
+    document.documentElement.classList.remove('ai-busy');
+  } catch (_) {}
+  try {
+    requestAnimationFrame(() => {
+      try { document.documentElement.classList.remove('ai-busy'); } catch (_) {}
+      setTimeout(() => {
+        try { document.documentElement.classList.remove('ai-busy'); } catch (_) {}
+      }, 120);
+    });
+  } catch (_) {}
+}
+
+function updateOutputMaxHeight() {
+  try {
+    const output = document.getElementById('aiOutput');
+    if (!output || output.hidden) return;
+    const chat = document.getElementById('chat');
+    const bottomGapPx = chat ? parseFloat(getComputedStyle(chat).paddingBottom) || 0 : 0;
+    const rect = output.getBoundingClientRect();
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+    const available = Math.max(30, Math.floor(viewportHeight - rect.top - bottomGapPx));
+    const maxByViewport = Math.max(45, Math.floor(viewportHeight * 0.4));
+    output.style.maxHeight = Math.min(available, maxByViewport) + 'px';
+  } catch (_) {}
 }
 
 function setBusy(busy) {
@@ -14,7 +42,10 @@ function setBusy(busy) {
   aiBtn.disabled = !!busy;
   searchBtn.disabled = !!busy;
   if (aiControls) aiControls.hidden = !busy;
-  try { document.documentElement.classList.toggle('ai-busy', !!busy); } catch (_) {}
+  try {
+    document.documentElement.classList.toggle('ai-busy', !!busy);
+    if (!busy) __clearAiBusyClass();
+  } catch (_) {}
 }
 
 function showError(msg) {
@@ -40,10 +71,12 @@ async function doAI(text) {
   if (content) content.innerHTML = '';
   output.hidden = false;
   if (aiControls) aiControls.hidden = false;
+  // 动态设置输出区域可用最大高度（随内容增长，达上限后滚动）
+  updateOutputMaxHeight();
   showError('');
   setBusy(true);
   let buffered = '';
-  const FLUSH_INTERVAL_MS = 80;
+  const FLUSH_INTERVAL_MS = 60;
   let flushTimer = null;
 
   const isAtBottom = (el, threshold = 8) => {
@@ -55,6 +88,7 @@ async function doAI(text) {
     if (!content) return;
     const stickToBottom = isAtBottom(output);
     content.textContent = buffered;
+    updateOutputMaxHeight();
     requestAnimationFrame(() => {
       if (stickToBottom) output.scrollTop = output.scrollHeight;
     });
@@ -78,6 +112,7 @@ async function doAI(text) {
     // 最终一次性做 Markdown 渲染，避免流式阶段的频繁重排
     if (content) content.innerHTML = window.renderMarkdown ? window.renderMarkdown(buffered) : buffered;
     const stickToBottom = isAtBottom(output);
+    updateOutputMaxHeight();
     requestAnimationFrame(() => {
       if (stickToBottom) output.scrollTop = output.scrollHeight;
     });
@@ -144,4 +179,8 @@ function initChat() {
 }
 
 document.addEventListener('DOMContentLoaded', initChat);
+
+window.addEventListener('resize', () => {
+  updateOutputMaxHeight();
+});
 
