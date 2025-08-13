@@ -328,6 +328,8 @@ dialog#settingsDialog form > fieldset {
   border: 1px solid var(--separator);
   border-radius: 12px;
   background: color-mix(in oklab, var(--surface) 92%, transparent);
+  /* 允许网格子项在两列布局时收缩，避免内容溢出重叠 */
+  min-width: 0;
 }
 
 dialog#settingsDialog form > .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -337,6 +339,8 @@ dialog#settingsDialog form > .grid-2 { display: grid; grid-template-columns: 1fr
 dialog#settingsDialog input,
 dialog#settingsDialog textarea {
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   border: 1px solid var(--separator);
   background: transparent;
   color: var(--fg);
@@ -368,10 +372,11 @@ dialog#settingsDialog fieldset > legend { font-size: 12px; color: var(--muted); 
 dialog#settingsDialog form > label { margin: 0; }
 @media (min-width: 680px) {
   dialog#settingsDialog form {
-    grid-template-columns: 1fr 1fr;
+    /* 自适应列数，避免临界宽度下两列拥挤导致重叠 */
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   }
   dialog#settingsDialog form > h2 { grid-column: 1 / -1; }
-  dialog#settingsDialog form > label { grid-column: span 1; }
+  dialog#settingsDialog form > label { grid-column: auto; }
   dialog#settingsDialog form > fieldset { grid-column: 1 / -1; }
   dialog#settingsDialog menu { grid-column: 1 / -1; }
 }
