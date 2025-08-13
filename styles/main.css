@@ -138,7 +138,7 @@ textarea#input::placeholder {
 
 .actions {
   display: flex;
-  gap: 8px;
+  gap: 6px;
 }
 
 /* 统一按钮系统 */
@@ -146,16 +146,18 @@ textarea#input::placeholder {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 72px;
-  height: 40px;
-  padding: 0 16px;
+  min-width: 64px;
+  height: 36px;
+  padding: 0 14px;
   border-radius: 9999px;
   font-size: 14px;
   font-weight: 600;
-  border: 1px solid transparent;
+  border: 1px solid var(--separator);
   cursor: pointer;
   user-select: none;
-  transition: transform 120ms ease, box-shadow 160ms ease, filter 120ms ease, background 160ms ease, border-color 160ms ease;
+  background: color-mix(in oklab, var(--surface) 80%, transparent);
+  color: var(--fg);
+  transition: transform 120ms ease, box-shadow 160ms ease, filter 120ms ease, background 160ms ease, border-color 160ms ease, color 160ms ease;
 }
 
 .btn:disabled {
@@ -164,56 +166,33 @@ textarea#input::placeholder {
 }
 
 .btn-primary {
-  background: linear-gradient(
-    180deg,
-    color-mix(in oklab, var(--accent) 94%, white) 0%,
-    color-mix(in oklab, var(--accent) 100%, black) 100%
-  );
+  background: color-mix(in oklab, var(--accent) 18%, var(--surface));
   color: #fff;
-  border-color: color-mix(in oklab, var(--accent) 36%, black);
-  box-shadow:
-    0 1px 0 rgb(255 255 255 / 0.25) inset,
-    0 1px 2px rgb(0 0 0 / 0.28),
-    0 6px 18px rgb(0 0 0 / 0.18);
+  border-color: color-mix(in oklab, var(--accent) 28%, var(--separator));
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.22);
 }
 
 .btn-neutral {
-  background: color-mix(in oklab, var(--surface) 86%, transparent);
+  background: transparent;
   color: var(--fg);
   border-color: var(--separator);
-  box-shadow: 0 1px 0 rgb(255 255 255 / 0.15) inset, 0 1px 2px rgb(0 0 0 / 0.18);
+  box-shadow: none;
 }
 
 .btn-ghost {
   background: transparent;
-  color: var(--fg);
-  border-color: var(--separator);
+  color: var(--muted);
+  border-color: color-mix(in oklab, var(--separator) 60%, transparent);
 }
 
-.btn:not(:disabled):hover {
-  filter: brightness(1.06);
-}
+.btn:not(:disabled):hover { filter: brightness(1.06); }
 
-.btn:not(:disabled):active {
-  transform: translateY(1px) scale(0.995);
-  box-shadow: 0 0 0 rgb(0 0 0 / 0);
-}
+.btn:not(:disabled):active { transform: translateY(1px) scale(0.995); box-shadow: 0 0 0 rgb(0 0 0 / 0); }
 
 /* 强化主要按钮的悬停高光与按压反馈 */
-.btn-primary:not(:disabled):hover {
-  box-shadow:
-    0 1px 0 rgb(255 255 255 / 0.28) inset,
-    0 2px 6px rgb(0 0 0 / 0.28),
-    0 10px 26px color-mix(in oklab, var(--accent) 28%, transparent);
-}
+.btn-primary:not(:disabled):hover { box-shadow: 0 2px 8px rgb(0 0 0 / 0.24); }
 
-.btn-primary:not(:disabled):active {
-  background: linear-gradient(
-    180deg,
-    color-mix(in oklab, var(--accent) 88%, white) 0%,
-    color-mix(in oklab, var(--accent) 96%, black) 100%
-  );
-}
+.btn-primary:not(:disabled):active { background: color-mix(in oklab, var(--accent) 22%, var(--surface)); }
 
 .output {
   margin-top: 12px;
@@ -224,9 +203,51 @@ textarea#input::placeholder {
   border-radius: 16px;
   border: 1px solid var(--separator);
   min-height: 24px;
-  white-space: pre-wrap;
   box-shadow: var(--shadow);
 }
+
+.output-controls {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.output-content { min-height: 20px; }
+
+/* Markdown 样式增强 */
+.output p { margin: 0.4em 0; }
+.output h1, .output h2, .output h3, .output h4, .output h5, .output h6 {
+  margin: 0.8em 0 0.4em;
+  line-height: 1.25;
+}
+.output h1 { font-size: 1.6em; }
+.output h2 { font-size: 1.4em; }
+.output h3 { font-size: 1.2em; }
+.output ul, .output ol { margin: 0.5em 0 0.5em 1.5em; }
+.output li { margin: 0.25em 0; }
+.output code {
+  background: color-mix(in oklab, var(--surface) 86%, transparent);
+  border: 1px solid var(--separator);
+  padding: 0 0.35em;
+  border-radius: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.95em;
+}
+.output pre {
+  margin: 0.6em 0;
+  padding: 10px 12px;
+  background: color-mix(in oklab, var(--surface) 92%, transparent);
+  border: 1px solid var(--separator);
+  border-radius: 10px;
+  overflow: auto;
+}
+.output pre code {
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+.output a { color: var(--accent); text-decoration: underline; }
 /* 右上角悬浮主题按钮 */
 .theme-floating {
   position: fixed;
@@ -236,12 +257,7 @@ textarea#input::placeholder {
 }
 
 /* 右上角悬浮设置按钮 */
-.settings-floating {
-  position: fixed;
-  top: 16px;
-  right: 16px;
-  z-index: 10;
-}
+.settings-floating { position: fixed; top: 14px; right: 14px; z-index: 10; }
 
 .error {
   margin-top: 10px;
@@ -255,19 +271,43 @@ dialog#settingsDialog::backdrop {
 dialog#settingsDialog {
   border: 0;
   border-radius: 20px;
-  padding: 16px 18px;
+  padding: 12px 14px;
   background: color-mix(in oklab, var(--surface) 96%, transparent);
   -webkit-backdrop-filter: saturate(180%) blur(18px);
   backdrop-filter: saturate(180%) blur(18px);
   color: var(--fg);
-  width: min(560px, 92vw);
+  width: min(720px, 94vw);
   box-shadow: var(--shadow);
 }
 
-dialog#settingsDialog form {
+dialog#settingsDialog form { display: grid; gap: 10px; }
+
+/* 双列自适应网格：小屏单列，大屏 2 列 */
+dialog#settingsDialog form > h2 { margin: 0 0 4px; font-size: 16px; font-weight: 700; }
+dialog#settingsDialog form > label,
+dialog#settingsDialog form > fieldset {
   display: grid;
-  gap: 12px;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid var(--separator);
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--surface) 92%, transparent);
 }
+
+dialog#settingsDialog form > .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* 输入控件更紧凑 */
+dialog#settingsDialog input,
+dialog#settingsDialog textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--separator);
+  background: transparent;
+  color: var(--fg);
+  transition: box-shadow 120ms ease, border-color 120ms ease;
+}
+dialog#settingsDialog textarea { min-height: 64px; resize: vertical; }
 
 dialog#settingsDialog input {
   width: 100%;
@@ -281,8 +321,24 @@ dialog#settingsDialog input {
 
 dialog#settingsDialog menu {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   justify-content: flex-end;
+}
+
+/* Fieldset 标题紧凑 */
+dialog#settingsDialog fieldset { margin: 0; }
+dialog#settingsDialog fieldset > legend { font-size: 12px; color: var(--muted); padding: 0 4px; }
+
+/* 布局细化：将基础设置放两列，增强信息密度 */
+dialog#settingsDialog form > label { margin: 0; }
+@media (min-width: 680px) {
+  dialog#settingsDialog form {
+    grid-template-columns: 1fr 1fr;
+  }
+  dialog#settingsDialog form > h2 { grid-column: 1 / -1; }
+  dialog#settingsDialog form > label { grid-column: span 1; }
+  dialog#settingsDialog form > fieldset { grid-column: 1 / -1; }
+  dialog#settingsDialog menu { grid-column: 1 / -1; }
 }
 
 /* 可访问性：聚焦可见（输入框改由容器高亮，不直接加亮边） */

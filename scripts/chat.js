@@ -9,9 +9,11 @@ function setBusy(busy) {
   const input = document.getElementById('input');
   const aiBtn = document.getElementById('aiBtn');
   const searchBtn = document.getElementById('searchBtn');
+  const aiControls = document.getElementById('aiControls');
   input.disabled = !!busy;
   aiBtn.disabled = !!busy;
   searchBtn.disabled = !!busy;
+  if (aiControls) aiControls.hidden = !busy;
 }
 
 function showError(msg) {
@@ -32,13 +34,22 @@ async function doSearch(text) {
 
 async function doAI(text) {
   const output = document.getElementById('aiOutput');
+  const content = document.getElementById('aiContent');
+  const aiControls = document.getElementById('aiControls');
+  if (content) content.innerHTML = '';
   output.hidden = false;
-  output.textContent = '';
+  if (aiControls) aiControls.hidden = false;
   showError('');
   setBusy(true);
-  await aiChat(text, (delta) => {
-    output.textContent += delta;
+  let buffered = '';
+  const flush = () => {
+    if (content) content.innerHTML = window.renderMarkdown ? window.renderMarkdown(buffered) : buffered;
     output.scrollTop = output.scrollHeight;
+  };
+  await aiChat(text, (delta) => {
+    buffered += delta;
+    // 简单节流：每次 delta 都刷新，体量较小
+    flush();
   }, (errMsg) => {
     showError(errMsg);
   }, () => {
@@ -50,6 +61,9 @@ function initChat() {
   const input = document.getElementById('input');
   const searchBtn = document.getElementById('searchBtn');
   const aiBtn = document.getElementById('aiBtn');
+  const aiControls = document.getElementById('aiControls');
+  const aiStopBtn = document.getElementById('aiStopBtn');
+  const aiResetBtn = document.getElementById('aiResetBtn');
 
   input.addEventListener('input', () => autoResizeTextArea(input));
   input.addEventListener('compositionstart', () => isComposing = true);
@@ -58,6 +72,7 @@ function initChat() {
   input.addEventListener('keydown', async (e) => {
     if (isComposing) return;
     if (e.key === 'Escape') {
+      try { aiCancelActive?.(); } catch (_) {}
       input.value = '';
       autoResizeTextArea(input);
       return;
@@ -81,6 +96,18 @@ function initChat() {
   aiBtn.addEventListener('click', () => {
     const text = input.value.trim();
     if (text) doAI(text);
+  });
+  aiStopBtn?.addEventListener('click', () => {
+    try { aiCancelActive?.(); } catch (_) {}
+  });
+  aiResetBtn?.addEventListener('click', async () => {
+    try { await aiClearHistory?.(); } catch (_) {}
+    const output = document.getElementById('aiOutput');
+    const content = document.getElementById('aiContent');
+    if (content) content.innerHTML = '';
+    if (output) output.hidden = true;
+    showError('已重置对话');
+    setTimeout(() => showError(''), 1500);
   });
   // 停止按钮已移除，如需中断 AI，可按 Esc 清空或刷新页面
 

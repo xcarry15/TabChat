@@ -1,4 +1,31 @@
-// 移除外部停止逻辑，内部仍支持超时自动中断
+// 支持外部停止：按 ESC 或点击“停止”
+let __aiActiveController = null;
+let __aiUserAborted = false;
+
+function aiCancelActive() {
+  __aiUserAborted = true;
+  try { __aiActiveController?.abort(); } catch (_) {}
+}
+
+// 对话记忆：使用 chrome.storage.local 存储，以轮为单位 [{ user, assistant }]
+async function __getChatHistoryPairs() {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(['chatHistoryPairs'], (res) => {
+      const list = Array.isArray(res.chatHistoryPairs) ? res.chatHistoryPairs : [];
+      resolve(list);
+    });
+  });
+}
+
+async function __saveChatHistoryPairs(pairs) {
+  return new Promise((resolve) => {
+    chrome.storage.local.set({ chatHistoryPairs: pairs }, () => resolve());
+  });
+}
+
+async function aiClearHistory() {
+  return __saveChatHistoryPairs([]);
+}
 
 async function aiChat(userText, onDelta, onError, onFinish) {
   const settings = await getSettings();
@@ -9,65 +36,162 @@ async function aiChat(userText, onDelta, onError, onFinish) {
   }
 
   const url = `${settings.baseUrl.replace(/\/$/, '')}/chat/completions`;
-  const body = {
+
+  const baseBody = {
     model: settings.model,
     stream: true,
-    messages: [{ role: 'user', content: userText }]
+    messages: [],
+    temperature: settings.temperature,
+    top_p: settings.topP,
+    max_tokens: settings.maxTokens
   };
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), settings.timeoutSeconds * 1000);
+  // 组装对话记忆
+  if (settings.systemPrompt) {
+    baseBody.messages.push({ role: 'system', content: settings.systemPrompt });
+  }
+  if (settings.memoryEnabled) {
+    try {
+      const pairs = await __getChatHistoryPairs();
+      const turns = Math.max(0, settings.memoryMaxTurns);
+      const recent = turns > 0 ? pairs.slice(-turns) : [];
+      for (const p of recent) {
+        if (p && typeof p.user === 'string') baseBody.messages.push({ role: 'user', content: p.user });
+        if (p && typeof p.assistant === 'string') baseBody.messages.push({ role: 'assistant', content: p.assistant });
+      }
+    } catch (_) {}
+  }
+  // 当前用户消息始终追加
+  baseBody.messages.push({ role: 'user', content: userText });
 
-  try {
-    const resp = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${settings.apiKey}`
-      },
-      body: JSON.stringify(body),
-      signal: controller.signal
-    });
+  let attempt = 0;
+  const maxAttempts = Math.max(0, settings.retries) + 1;
+  let finished = false;
+  let lastError = null;
 
-    if (!resp.ok) {
-      if (resp.status === 401) throw new Error('鉴权失败，请检查 API Key');
-      if (resp.status === 429) throw new Error('速率限制，稍后重试');
-      throw new Error(`网络异常（${resp.status}）`);
+  while (attempt < maxAttempts && !finished) {
+    if (attempt > 0) {
+      const delaySeconds = settings.retryInitialDelaySeconds * Math.pow(2, attempt - 1);
+      await new Promise(r => setTimeout(r, delaySeconds * 1000));
     }
 
-    const reader = resp.body.getReader();
-    const decoder = new TextDecoder('utf-8');
-    let buffer = '';
+    const controller = new AbortController();
+    __aiActiveController = controller;
+    __aiUserAborted = false;
+    const timeoutId = setTimeout(() => controller.abort(), settings.timeoutSeconds * 1000);
 
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      // SSE 按行解析
-      const lines = buffer.split(/\r?\n/);
-      buffer = lines.pop() || '';
-      for (const line of lines) {
-        if (!line.startsWith('data:')) continue;
-        const data = line.slice(5).trim();
-        if (!data || data === '[DONE]') continue;
+    let receivedAny = false;
+    let assistantFullText = '';
+
+    try {
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${settings.apiKey}`,
+          'Accept': 'text/event-stream'
+        },
+        body: JSON.stringify(baseBody),
+        signal: controller.signal
+      });
+
+      if (!resp.ok) {
+        let errMsg = `网络异常（${resp.status}）`;
         try {
-          const json = JSON.parse(data);
-          const delta = json.choices?.[0]?.delta?.content || json.choices?.[0]?.message?.content || '';
-          if (delta) onDelta?.(delta);
-        } catch (_) {
-          // 忽略解析错误
+          const text = await resp.text();
+          const json = JSON.parse(text);
+          errMsg = json?.error?.message || json?.message || errMsg;
+        } catch (_) {}
+        if (resp.status === 401) errMsg = '鉴权失败，请检查 API Key';
+        if (resp.status === 429) errMsg = '速率限制，稍后重试';
+        // 对 429/5xx 进行重试
+        if ((resp.status === 429 || resp.status >= 500) && attempt < maxAttempts - 1) {
+          attempt++;
+          lastError = new Error(errMsg);
+          continue;
+        }
+        throw new Error(errMsg);
+      }
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let buffer = '';
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        receivedAny = true;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split(/\r?\n/);
+        buffer = lines.pop() || '';
+        for (const raw of lines) {
+          const line = raw.trim();
+          if (!line) continue;
+          if (!line.startsWith('data:')) continue;
+          const data = line.slice(5).trim();
+          if (!data) continue;
+          if (data === '[DONE]') continue;
+          try {
+            const json = JSON.parse(data);
+            const delta = json.choices?.[0]?.delta?.content || json.choices?.[0]?.message?.content || '';
+            if (delta) {
+              assistantFullText += delta;
+              onDelta?.(delta);
+            }
+          } catch (_) {
+            // 忽略解析错误
+          }
         }
       }
+      finished = true;
+      // 成功结束且启用记忆时保存一轮对话
+      if (settings.memoryEnabled && assistantFullText) {
+        try {
+          const pairs = await __getChatHistoryPairs();
+          pairs.push({ user: userText, assistant: assistantFullText });
+          const turns = Math.max(0, settings.memoryMaxTurns);
+          const trimmed = turns > 0 ? pairs.slice(-turns) : [];
+          await __saveChatHistoryPairs(trimmed);
+        } catch (_) {}
+      }
+    } catch (err) {
+      if (err?.name === 'AbortError') {
+        if (__aiUserAborted) {
+          onError?.('已取消');
+          finished = true;
+          lastError = null;
+        } else {
+          // 超时等导致的中断：若尚未接收内容且可重试
+          if (!receivedAny && attempt < maxAttempts - 1) {
+            attempt++;
+            lastError = err;
+            continue;
+          }
+          onError?.('请求超时或被中断');
+          finished = true;
+        }
+      } else {
+        const msg = err?.message || '请求失败';
+        // 网络错误重试（仅在未收到任何数据时）
+        if (!receivedAny && attempt < maxAttempts - 1) {
+          attempt++;
+          lastError = err;
+          continue;
+        }
+        onError?.(msg);
+        finished = true;
+      }
+    } finally {
+      clearTimeout(timeoutId);
+      if (__aiActiveController === controller) {
+        __aiActiveController = null;
+      }
     }
-  } catch (err) {
-    if (err.name === 'AbortError') {
-      onError?.('已取消');
-    } else {
-      onError?.(err.message || '请求失败');
-    }
+  }
+
+  try {
+    // noop - 所有错误已在上面回调
   } finally {
-    clearTimeout(timeoutId);
     onFinish?.();
   }
 }
-

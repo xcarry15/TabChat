@@ -23,7 +23,13 @@
           <button id="aiBtn" class="btn btn-primary" title="Ctrl+Enter AI" aria-label="AI 回复">AI</button>
         </div>
       </div>
-      <div id="aiOutput" class="output" aria-live="polite" hidden></div>
+      <div id="aiOutput" class="output" aria-live="polite" hidden>
+        <div id="aiControls" class="output-controls" hidden>
+          <button id="aiStopBtn" class="btn" title="停止" aria-label="停止">停止</button>
+          <button id="aiResetBtn" class="btn" title="重置对话" aria-label="重置对话">重置</button>
+        </div>
+        <div id="aiContent" class="output-content"></div>
+      </div>
       <div id="error" class="error" role="alert" aria-live="assertive" hidden></div>
     </section>
   </main>
@@ -53,13 +59,55 @@
       </menu>
     </form>
   </dialog>
+  
+  <template id="advancedSettingsTemplate">
+    <fieldset>
+      <legend>高级参数</legend>
+      <label>
+        Temperature
+        <input id="temperature" type="number" min="0" max="2" step="0.1" placeholder="0.7">
+      </label>
+      <label>
+        Top P
+        <input id="topP" type="number" min="0" max="1" step="0.05" placeholder="1">
+      </label>
+      <label>
+        最大输出（max_tokens）
+        <input id="maxTokens" type="number" min="1" step="1" placeholder="2048">
+      </label>
+      <label>
+        重试次数
+        <input id="retries" type="number" min="0" max="5" step="1" placeholder="2">
+      </label>
+      <label>
+        初始重试间隔（秒）
+        <input id="retryInitialDelaySeconds" type="number" min="0.25" max="10" step="0.25" placeholder="1">
+      </label>
+    </fieldset>
+    <fieldset>
+      <legend>对话记忆</legend>
+      <label class="checkbox">
+        <input id="memoryEnabled" type="checkbox" checked> 启用对话记忆
+      </label>
+      <label>
+        记忆轮数（user+assistant 为一轮）
+        <input id="memoryMaxTurns" type="number" min="0" max="32" step="1" placeholder="8">
+      </label>
+      <label>
+        系统提示词（可选）
+        <textarea id="systemPrompt" rows="3" placeholder="你是一个有用的助手，回答简洁。"></textarea>
+      </label>
+    </fieldset>
+  </template>
 
   <script src="scripts/background.js" defer></script>
   <script src="scripts/time.js" defer></script>
   <script src="scripts/settings.js" defer></script>
+  <script src="scripts/markdown.js" defer></script>
   <script src="scripts/ai.js" defer></script>
   <script src="scripts/chat.js" defer></script>
 </body>
 <!-- 首次加载：Chrome 扩展 → 开发者模式 → 加载已解压 → 选择本目录 -->
 </html>
+
 
