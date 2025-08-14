@@ -2,8 +2,29 @@
 v0.3.0 | 2025-08-14
 - 更正误导性注释：保留“停止”按钮说明
 - 新增“翻译”按钮交互：将输入内容翻译为简体中文
+- 性能：降低流式刷新频率；在忙碌时标记输出区域 aria-busy；节流高度计算
+  以及使用文本节点/块增量追加，减少重复字符串拷贝
+ - 体验：流式输出采用渐显动画，更加动态
 */
 let isComposing = false;
+let __lastMode = null; // 'search' | 'ai' | 'translate'
+
+async function __resetConversation() {
+  try { aiCancelActive?.(); } catch (_) {}
+  try { await aiClearHistory?.(); } catch (_) {}
+  const output = document.getElementById('aiOutput');
+  const content = document.getElementById('aiContent');
+  if (content) content.innerHTML = '';
+  if (output) output.hidden = true;
+  showError('');
+}
+
+async function __ensureModeAndMaybeReset(newMode) {
+  if (__lastMode && __lastMode !== newMode) {
+    await __resetConversation();
+  }
+  __lastMode = newMode;
+}
 
 function autoResizeTextArea(el) {
   el.style.height = 'auto';
@@ -24,17 +45,22 @@ function __clearAiBusyClass() {
   } catch (_) {}
 }
 
+let __heightRaf = 0;
 function updateOutputMaxHeight() {
   try {
     const output = document.getElementById('aiOutput');
     if (!output || output.hidden) return;
     const chat = document.getElementById('chat');
     const bottomGapPx = chat ? parseFloat(getComputedStyle(chat).paddingBottom) || 0 : 0;
-    const rect = output.getBoundingClientRect();
-    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-    const available = Math.max(30, Math.floor(viewportHeight - rect.top - bottomGapPx));
-    const maxByViewport = Math.max(45, Math.floor(viewportHeight * 0.4));
-    output.style.maxHeight = Math.min(available, maxByViewport) + 'px';
+    if (__heightRaf) return; // 简易节流，下一帧再计算
+    __heightRaf = requestAnimationFrame(() => {
+      __heightRaf = 0;
+      const rect = output.getBoundingClientRect();
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+      const available = Math.max(30, Math.floor(viewportHeight - rect.top - bottomGapPx));
+      const maxByViewport = Math.max(45, Math.floor(viewportHeight * 0.4));
+      output.style.maxHeight = Math.min(available, maxByViewport) + 'px';
+    });
   } catch (_) {}
 }
 
@@ -80,8 +106,17 @@ async function doAI(text) {
   updateOutputMaxHeight();
   showError('');
   setBusy(true);
-  let buffered = '';
-  const FLUSH_INTERVAL_MS = 60;
+  try { output.setAttribute('aria-busy', 'true'); } catch (_) {}
+  // 流式容器：批量追加块，便于渐显动画
+  let streamContainer = null;
+  if (content) {
+    streamContainer = document.createElement('div');
+    streamContainer.id = 'aiStream';
+    content.appendChild(streamContainer);
+  }
+  const fullChunks = [];
+  const pendingChunks = [];
+  const FLUSH_INTERVAL_MS = 100;
   let flushTimer = null;
 
   const isAtBottom = (el, threshold = 8) => {
@@ -90,9 +125,15 @@ async function doAI(text) {
   };
 
   const flushStream = () => {
-    if (!content) return;
+    if (!content || !streamContainer) return;
+    if (pendingChunks.length === 0) return;
     const stickToBottom = isAtBottom(output);
-    content.textContent = buffered;
+    const add = pendingChunks.join('');
+    pendingChunks.length = 0;
+    const span = document.createElement('span');
+    span.className = 'stream-chunk';
+    span.textContent = add;
+    streamContainer.appendChild(span);
     updateOutputMaxHeight();
     requestAnimationFrame(() => {
       if (stickToBottom) output.scrollTop = output.scrollHeight;
@@ -108,20 +149,23 @@ async function doAI(text) {
   };
 
   await aiChat(text, (delta) => {
-    buffered += delta;
+    pendingChunks.push(delta);
+    fullChunks.push(delta);
     scheduleFlush();
   }, (errMsg) => {
     showError(errMsg);
   }, () => {
     if (flushTimer) { clearTimeout(flushTimer); flushTimer = null; }
     // 最终一次性做 Markdown 渲染，避免流式阶段的频繁重排
-    if (content) content.innerHTML = window.renderMarkdown ? window.renderMarkdown(buffered) : buffered;
+    const finalText = fullChunks.join('');
+    if (content) content.innerHTML = window.renderMarkdown ? window.renderMarkdown(finalText) : finalText;
     const stickToBottom = isAtBottom(output);
     updateOutputMaxHeight();
     requestAnimationFrame(() => {
       if (stickToBottom) output.scrollTop = output.scrollHeight;
     });
     setBusy(false);
+    try { output.setAttribute('aria-busy', 'false'); } catch (_) {}
   });
 }
 
@@ -151,26 +195,33 @@ function initChat() {
       const text = input.value.trim();
       if (!text) return;
       if (e.ctrlKey || e.metaKey) {
+        await __ensureModeAndMaybeReset('ai');
         doAI(text);
       } else {
+        await __ensureModeAndMaybeReset('search');
         doSearch(text);
       }
     }
   });
 
-  searchBtn.addEventListener('click', () => {
+  searchBtn.addEventListener('click', async () => {
     const text = input.value.trim();
-    if (text) doSearch(text);
+    if (!text) return;
+    await __ensureModeAndMaybeReset('search');
+    doSearch(text);
   });
-  translateBtn?.addEventListener('click', () => {
+  translateBtn?.addEventListener('click', async () => {
     const text = input.value.trim();
     if (!text) return;
     const translatePrompt = `根据第一性原理识别以下内容意图并翻译，只需要输出译文，无需解释（默认中英互译）：\n\n${text}`;
+    await __ensureModeAndMaybeReset('translate');
     doAI(translatePrompt);
   });
-  aiBtn.addEventListener('click', () => {
+  aiBtn.addEventListener('click', async () => {
     const text = input.value.trim();
-    if (text) doAI(text);
+    if (!text) return;
+    await __ensureModeAndMaybeReset('ai');
+    doAI(text);
   });
   aiStopBtn?.addEventListener('click', () => {
     try { aiCancelActive?.(); } catch (_) {}
@@ -183,6 +234,7 @@ function initChat() {
     if (output) output.hidden = true;
     showError('已重置对话');
     setTimeout(() => showError(''), 1500);
+    __lastMode = null;
   });
   // 可通过“停止”按钮或按 Esc 中断当前 AI 请求
 

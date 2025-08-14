@@ -292,6 +292,16 @@ textarea#input::placeholder {
 
 .output-content { min-height: 20px; }
 
+/* 流式渐显动画：每个增量块轻微淡入 */
+.stream-chunk {
+  opacity: 0;
+  animation: streamFadeIn 240ms ease-out forwards;
+}
+@keyframes streamFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 /* Markdown 样式增强 */
 .output p { margin: 0.4em 0; }
 .output h1, .output h2, .output h3, .output h4, .output h5, .output h6 {
