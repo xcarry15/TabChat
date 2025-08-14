@@ -1,5 +1,5 @@
 {
-  "devDependencies": {
-    "sharp": "^0.34.3"
-  }
+  "name": "tabchat",
+  "private": true,
+  "version": "0.3.0"
 }

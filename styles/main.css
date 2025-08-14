@@ -1,3 +1,9 @@
+/* v0.3.0 | 2025-08-14
+- 将 搜索/AI/停止/重置 按钮移出输入框，新增顶部工具条样式
+- 新增半透明按钮 `.btn-translucent` 与可访问性焦点样式覆盖
+- 将日期移动到屏幕左上角
+- 提升输入与输出区域透明度，与按钮半透明风格保持一致
+*/
 :root {
   /* macOS/iOS 风格色板（深色） */
   --bg: #0b0b0c;
@@ -77,6 +83,12 @@ body {
   margin-top: 8px;
   font-size: clamp(14px, 2.2vw, 18px);
   color: var(--muted);
+  /* 移动到屏幕左上角 */
+  position: fixed;
+  top: 14px;
+  left: 16px;
+  margin-top: 0;
+  z-index: 10;
 }
 
 #chat {
@@ -85,7 +97,7 @@ body {
   display: grid;
   align-content: start;
   /* 搜索栏、输出、错误信息三行：输出按内容增长，达到上限后在容器内滚动 */
-  grid-template-rows: auto auto auto;
+  grid-template-rows: auto auto auto auto;
   /* 允许在父级网格中收缩，避免内容导致超出视口 */
   min-height: 0;
   padding-top: 2vh; /* 再往上移一些 */
@@ -97,13 +109,13 @@ body {
 
 .chat-bar {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr;
   gap: 10px;
-  background: color-mix(in oklab, var(--surface) 68%, transparent);
+  background: color-mix(in oklab, var(--surface) 60%, transparent);
   -webkit-backdrop-filter: saturate(180%) blur(18px);
   backdrop-filter: saturate(180%) blur(18px);
   /* 显式半透明背景，确保各浏览器下依然可见模糊与通透感 */
-  background-color: rgba(28, 28, 30, 0.22);
+  background-color: rgba(28, 28, 30, 0.18);
   border: 1px solid var(--separator);
   border-radius: 20px;
   padding: 14px 14px 14px 16px;
@@ -112,10 +124,16 @@ body {
 
 /* 输入聚焦时，使用容器提供更优雅的聚焦指示 */
 .chat-bar:focus-within {
-  background: color-mix(in oklab, var(--surface) 76%, transparent);
+  background: color-mix(in oklab, var(--surface) 66%, transparent);
   background-color: rgba(28, 28, 30, 0.22);
   border-color: color-mix(in oklab, var(--accent) 28%, var(--separator));
   box-shadow: var(--shadow), 0 0 0 2px color-mix(in oklab, var(--accent) 18%, transparent);
+}
+
+/* 输入区域外包裹，确保按钮位于右侧但不抢占输入边距 */
+.input-wrap {
+  display: flex;
+  align-items: center;
 }
 
 textarea#input {
@@ -200,14 +218,24 @@ textarea#input::placeholder {
 
 .btn-primary:not(:disabled):active { background: color-mix(in oklab, var(--accent) 22%, var(--surface)); }
 
+/* 半透明按钮风格：用于与整体磨砂风格统一 */
+.btn-translucent {
+  background: color-mix(in oklab, var(--surface) 60%, transparent);
+  color: var(--fg);
+  border-color: color-mix(in oklab, var(--separator) 80%, transparent);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.22);
+}
+.btn-translucent:not(:disabled):hover { filter: brightness(1.06); box-shadow: 0 2px 8px rgb(0 0 0 / 0.24); }
+.btn-translucent:not(:disabled):active { transform: translateY(1px) scale(0.995); box-shadow: 0 0 0 rgb(0 0 0 / 0); }
+
 .output {
   margin-top: 12px;
   padding: 14px 16px;
-  background: color-mix(in oklab, var(--surface) 74%, transparent);
+  background: color-mix(in oklab, var(--surface) 60%, transparent);
   -webkit-backdrop-filter: saturate(180%) blur(18px);
   backdrop-filter: saturate(180%) blur(18px);
   /* 显式半透明背景，确保各浏览器下依然可见模糊与通透感 */
-  background-color: rgba(28, 28, 30, 0.26);
+  background-color: rgba(28, 28, 30, 0.18);
   border-radius: 16px;
   border: 1px solid var(--separator);
   /* 允许在 Grid 中收缩以适配容器高度 */
@@ -216,6 +244,19 @@ textarea#input::placeholder {
   /* 内容短时不出现滚动条；内容过长时在容器内部滚动 */
   overflow: auto;
 }
+
+/* 顶部工具条：将搜索/AI/停止/重置移至输入框外，贴近右侧 */
+.chat-actions-toolbar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  margin-top: 10px;
+}
+.chat-actions-toolbar .toolbar-right {
+  display: flex;
+  gap: 8px;
+}
+.chat-actions-toolbar .toolbar-controls[hidden] { display: none !important; }
 
 /* 表格与引用的样式优化 */
 .output blockquote {
@@ -383,7 +424,8 @@ dialog#settingsDialog form > label { margin: 0; }
 
 /* 可访问性：聚焦可见（输入框改由容器高亮，不直接加亮边） */
 dialog#settingsDialog input:focus-visible,
-.actions button:focus-visible {
+.actions button:focus-visible,
+.chat-actions-toolbar button:focus-visible {
   outline: none;
   box-shadow: 0 0 0 3px var(--ring);
   border-color: color-mix(in oklab, var(--accent) 50%, var(--separator));

@@ -1,9 +1,12 @@
+<!-- v0.3.0 | 2025-08-14
+- 统一页面标题为 TabChat
+-->
 <!doctype html>
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>New Tab Chat</title>
+  <title>TabChat</title>
   <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
@@ -17,17 +20,25 @@
 
     <section id="chat" aria-label="聊天与搜索">
       <div class="chat-bar">
-        <textarea id="input" rows="1" placeholder="输入内容后 按 Enter 搜索，Ctrl+Enter 由 AI 回复" aria-label="输入框"></textarea>
-        <div class="actions">
-          <button id="searchBtn" class="btn btn-primary" title="Enter 搜索" aria-label="搜索">搜索</button>
-          <button id="aiBtn" class="btn btn-primary" title="Ctrl+Enter AI" aria-label="AI 回复">AI</button>
+        <div class="input-wrap">
+          <textarea id="input" rows="1" placeholder="输入内容后 按 Enter 搜索，Ctrl+Enter 由 AI 回复" aria-label="输入框"></textarea>
         </div>
       </div>
-      <div id="aiOutput" class="output" aria-live="polite" hidden>
-        <div id="aiControls" class="output-controls" hidden>
-          <button id="aiStopBtn" class="btn" title="停止" aria-label="停止">停止</button>
-          <button id="aiResetBtn" class="btn" title="重置对话" aria-label="重置对话">重置</button>
+
+      <div class="chat-actions-toolbar" aria-label="操作">
+        <div class="toolbar-right">
+          <button id="searchBtn" class="btn btn-translucent" title="Enter 搜索" aria-label="搜索">搜索</button>
+          <button id="aiBtn" class="btn btn-translucent" title="Ctrl+Enter AI" aria-label="AI 回复">AI</button>
+          <button id="translateBtn" class="btn btn-translucent" title="翻译为中文" aria-label="翻译">翻译</button>
+
+          <span id="aiControls" class="toolbar-controls" hidden>
+            <button id="aiStopBtn" class="btn btn-translucent" title="停止" aria-label="停止">停止</button>
+            <button id="aiResetBtn" class="btn btn-translucent" title="重置对话" aria-label="重置对话">重置</button>
+          </span>
         </div>
+      </div>
+
+      <div id="aiOutput" class="output" aria-live="polite" hidden>
         <div id="aiContent" class="output-content"></div>
       </div>
       <div id="error" class="error" role="alert" aria-live="assertive" hidden></div>

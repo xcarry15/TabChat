@@ -1,5 +1,9 @@
+v0.3.0 | 2025-08-14
+- 读取 manifest.json 的 version 作为包名版本
+
 打包命令：
 
-$ver = '0.2.0'
-Compress-Archive -Path index.html, manifest.json, scripts, styles -DestinationPath ..\tabchat-$ver.zip -Force
+$manifest = Get-Content -Raw -Path manifest.json | ConvertFrom-Json
+$ver = $manifest.version
+Compress-Archive -Path index.html, manifest.json, scripts, styles, icons -DestinationPath ..\tabchat-$ver.zip -Force
 

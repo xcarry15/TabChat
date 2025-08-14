@@ -1,3 +1,8 @@
+/*
+v0.3.0 | 2025-08-14
+- 更正误导性注释：保留“停止”按钮说明
+- 新增“翻译”按钮交互：将输入内容翻译为简体中文
+*/
 let isComposing = false;
 
 function autoResizeTextArea(el) {
@@ -123,6 +128,7 @@ async function doAI(text) {
 function initChat() {
   const input = document.getElementById('input');
   const searchBtn = document.getElementById('searchBtn');
+  const translateBtn = document.getElementById('translateBtn');
   const aiBtn = document.getElementById('aiBtn');
   const aiControls = document.getElementById('aiControls');
   const aiStopBtn = document.getElementById('aiStopBtn');
@@ -156,6 +162,12 @@ function initChat() {
     const text = input.value.trim();
     if (text) doSearch(text);
   });
+  translateBtn?.addEventListener('click', () => {
+    const text = input.value.trim();
+    if (!text) return;
+    const translatePrompt = `根据第一性原理识别以下内容意图并翻译，只需要输出译文，无需解释（默认中英互译）：\n\n${text}`;
+    doAI(translatePrompt);
+  });
   aiBtn.addEventListener('click', () => {
     const text = input.value.trim();
     if (text) doAI(text);
@@ -172,7 +184,7 @@ function initChat() {
     showError('已重置对话');
     setTimeout(() => showError(''), 1500);
   });
-  // 停止按钮已移除，如需中断 AI，可按 Esc 清空或刷新页面
+  // 可通过“停止”按钮或按 Esc 中断当前 AI 请求
 
   autoResizeTextArea(input);
   input.focus();
