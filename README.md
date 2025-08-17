@@ -1,6 +1,7 @@
 ### 项目简介
 - TabChat 是一个覆盖新标签页的轻量级“搜索 + AI 对话”扩展。顶部显示时间，底部为输入栏：按 Enter 用默认搜索引擎；按 Ctrl+Enter 让本地配置的 AI 模型进行流式回复。
 - 设计目标：上手快、体验顺滑、配置安全（仅本地存储）。
+<img width="2560" height="1528" alt="image" src="https://github.com/user-attachments/assets/464a9756-c67f-4fb6-9b53-40ef989166f2" />
 
 ### 功能
 - 流式 AI 回复与最终 Markdown 渲染（流式阶段合并更新，完成后一次性高质量渲染）。
