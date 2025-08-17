@@ -1,8 +1,7 @@
-/* v0.3.0 | 2025-08-14
-- 将 搜索/AI/停止/重置 按钮移出输入框，新增顶部工具条样式
-- 新增半透明按钮 `.btn-translucent` 与可访问性焦点样式覆盖
-- 将日期移动到屏幕左上角
-- 提升输入与输出区域透明度，与按钮半透明风格保持一致
+/* v0.3.4 | 2025-08-17
+- 新增：左下角“历史”按钮与悬浮历史面板样式
+- 历史列表区域默认可见至少20条（在视口允许范围内），其余滚动
+- 修复：配合模式切换保留历史的交互，更新样式版本号
 */
 :root {
   /* macOS/iOS 风格色板（深色） */
@@ -345,6 +344,71 @@ textarea#input::placeholder {
 
 /* 右上角悬浮设置按钮 */
 .settings-floating { position: fixed; top: 14px; right: 14px; z-index: 10; }
+
+/* 左下角悬浮历史按钮 */
+.history-floating {
+  position: fixed;
+  left: 14px;
+  bottom: 14px;
+  z-index: 11;
+}
+
+/* 历史面板 */
+.history-panel {
+  position: fixed;
+  left: 14px;
+  bottom: 64px;
+  width: min(420px, 92vw);
+  background: color-mix(in oklab, var(--surface) 96%, transparent);
+  -webkit-backdrop-filter: saturate(180%) blur(18px);
+  backdrop-filter: saturate(180%) blur(18px);
+  border: 1px solid var(--separator);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  color: var(--fg);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  z-index: 12;
+}
+.history-panel[hidden] { display: none !important; }
+
+.history-header, .history-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--separator);
+}
+.history-footer { border-top: 1px solid var(--separator); border-bottom: 0; justify-content: flex-end; }
+.history-title { margin: 0; font-size: 14px; font-weight: 700; }
+.muted { color: var(--muted); }
+
+/* 历史列表：保证至少20条可见（估算每项行高约 42px） */
+.history-list {
+  padding: 8px;
+  overflow: auto;
+  /* 20 条 * 42px ≈ 840px，使用 clamp 受视口限制 */
+  max-height: clamp(320px, 80vh, 840px);
+  min-height: 160px;
+}
+
+.history-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--separator);
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--surface) 92%, transparent);
+  cursor: pointer;
+}
+.history-item + .history-item { margin-top: 8px; }
+.history-item:hover { filter: brightness(1.06); }
+.history-item:active { transform: translateY(1px); }
+.history-item-index { font-size: 12px; color: var(--muted); padding-top: 2px; }
+.history-item-user { font-weight: 600; font-size: 14px; }
+.history-item-assistant { margin-top: 4px; font-size: 13px; color: var(--muted); }
+.history-empty { color: var(--muted); text-align: center; padding: 24px 0; }
 
 .error {
   margin-top: 10px;

@@ -1,3 +1,7 @@
+/*
+v0.3.4 | 2025-08-17
+- 版本头同步：与历史面板功能发布一致；无功能改动
+*/
 (() => {
   const timeEl = document.getElementById('clock-time');
   const dateEl = document.getElementById('clock-date');

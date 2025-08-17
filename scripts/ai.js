@@ -1,3 +1,7 @@
+/*
+v0.3.4 | 2025-08-17
+- 版本头同步：与历史面板功能发布一致；与历史面板共享 chatHistoryPairs；无功能改动
+*/
 // 支持外部停止：按 ESC 或点击“停止”
 let __aiActiveController = null;
 let __aiUserAborted = false;

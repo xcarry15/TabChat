@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "TabChat",
   "short_name": "TabChat",
-  "version": "0.3.0",
+  "version": "0.3.4",
   "description": "TabChat 是一个覆盖新标签页的轻量级“搜索 + AI 对话”扩展。顶部显示时间，底部为输入栏：按 Enter 用默认搜索引擎；按 Ctrl+Enter 让本地配置的 AI 模型进行流式回复。",
   "minimum_chrome_version": "114",
   "chrome_url_overrides": {

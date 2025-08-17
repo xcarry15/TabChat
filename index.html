@@ -1,5 +1,7 @@
-<!-- v0.3.0 | 2025-08-14
-- 统一页面标题为 TabChat
+<!-- v0.3.4 | 2025-08-17
+- 新增：左下角“历史”按钮和悬浮历史面板（可滚动，默认可见区域至少显示20条）
+- 引入 scripts/history.js
+- 修复：模式切换不再清空历史，仅“重置对话”按钮会清空
 -->
 <!doctype html>
 <html lang="zh-CN">
@@ -12,6 +14,7 @@
 <body>
   <canvas id="bg" aria-hidden="true"></canvas>
   <button id="settingsBtn" class="btn btn-neutral settings-floating" title="设置" aria-label="设置">设置</button>
+  <button id="historyBtn" class="btn btn-neutral history-floating" title="历史会话" aria-label="历史会话">历史</button>
   <main id="app" aria-live="polite">
     <section id="clock" aria-label="当前时间">
       <div id="clock-time" role="timer" aria-live="polite">--:--</div>
@@ -44,6 +47,18 @@
       <div id="error" class="error" role="alert" aria-live="assertive" hidden></div>
     </section>
   </main>
+
+  <!-- 历史会话悬浮面板 -->
+  <section id="historyPanel" class="history-panel" aria-label="历史会话" hidden>
+    <header class="history-header">
+      <h3 class="history-title">历史会话</h3>
+      <button id="historyCloseBtn" class="btn btn-ghost" aria-label="关闭历史">关闭</button>
+    </header>
+    <div id="historyList" class="history-list" role="list" aria-live="polite"></div>
+    <footer class="history-footer">
+      <small class="muted">点击一项可将内容填入输入框</small>
+    </footer>
+  </section>
 
   <dialog id="settingsDialog" aria-label="设置">
     <form method="dialog" id="settingsForm">
@@ -116,6 +131,7 @@
   <script src="scripts/settings.js" defer></script>
   <script src="scripts/markdown.js" defer></script>
   <script src="scripts/ai.js" defer></script>
+  <script src="scripts/history.js" defer></script>
   <script src="scripts/chat.js" defer></script>
 </body>
 <!-- 首次加载：Chrome 扩展 → 开发者模式 → 加载已解压 → 选择本目录 -->

@@ -1,17 +1,13 @@
 /*
-v0.3.0 | 2025-08-14
-- 更正误导性注释：保留“停止”按钮说明
-- 新增“翻译”按钮交互：将输入内容翻译为简体中文
-- 性能：降低流式刷新频率；在忙碌时标记输出区域 aria-busy；节流高度计算
-  以及使用文本节点/块增量追加，减少重复字符串拷贝
- - 体验：流式输出采用渐显动画，更加动态
+v0.3.4 | 2025-08-17
+- 修复：切换模式（搜索/AI/翻译）时不再清空对话历史，仅重置 UI
+- 保留“重置对话”按钮的清空历史行为（显式操作）
 */
 let isComposing = false;
 let __lastMode = null; // 'search' | 'ai' | 'translate'
 
 async function __resetConversation() {
   try { aiCancelActive?.(); } catch (_) {}
-  try { await aiClearHistory?.(); } catch (_) {}
   const output = document.getElementById('aiOutput');
   const content = document.getElementById('aiContent');
   if (content) content.innerHTML = '';

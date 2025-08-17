@@ -1,7 +1,11 @@
+/*
+v0.3.4 | 2025-08-17
+- 版本头同步：与历史面板功能发布一致；无功能改动
+*/
 const DEFAULT_SETTINGS = {
   baseUrl: 'https://api.siliconflow.cn/v1',
   model: 'deepseek-ai/DeepSeek-V2.5',
-  timeoutSeconds: 301,
+  timeoutSeconds: 120,
   temperature: 0.7,
   topP: 1,
   maxTokens: 8192,
