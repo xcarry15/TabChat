@@ -1,5 +1,5 @@
 ### 项目简介
-- TabChat 是一个覆盖新标签页的轻量级“搜索 + AI 对话”扩展。顶部显示时间，底部为输入栏：按 Enter 用默认搜索引擎；按 Ctrl+Enter 让本地配置的 AI 模型进行流式回复。
+- TabChat 是一款免费、炫酷且足够纯粹的浏览器标签扩展工具。顶部显示时间，底部为输入栏。支持本地配置的 AI 模型进行流式回复。
 - 设计目标：上手快、体验顺滑、配置安全（仅本地存储）。
 <img width="1911" height="1018" alt="image" src="https://github.com/user-attachments/assets/7d05dde7-0b7d-4167-8a26-db9bf70f05a5" />
 
