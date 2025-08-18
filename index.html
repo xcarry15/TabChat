@@ -1,7 +1,6 @@
-<!-- v0.3.4 | 2025-08-17
-- 新增：左下角“历史”按钮和悬浮历史面板（可滚动，默认可见区域至少显示20条）
-- 引入 scripts/history.js
-- 修复：模式切换不再清空历史，仅“重置对话”按钮会清空
+<!-- v0.3.5 | 2025-08-18
+ - 新增：工具栏“格式”按钮；将输入内容经 AI 转写为严格 JSON
+ - 其他：保持与现有样式一致，最小侵入改动
 -->
 <!doctype html>
 <html lang="zh-CN">
@@ -33,6 +32,7 @@
           <button id="searchBtn" class="btn btn-translucent" title="Enter 搜索" aria-label="搜索">搜索</button>
           <button id="aiBtn" class="btn btn-translucent" title="Ctrl+Enter AI" aria-label="AI 回复">AI</button>
           <button id="translateBtn" class="btn btn-translucent" title="翻译为中文" aria-label="翻译">翻译</button>
+          <button id="formatBtn" class="btn btn-translucent" title="将输入转为严格 JSON" aria-label="格式为 JSON">格式</button>
 
           <span id="aiControls" class="toolbar-controls" hidden>
             <button id="aiStopBtn" class="btn btn-translucent" title="停止" aria-label="停止">停止</button>
@@ -132,6 +132,7 @@
   <script src="scripts/markdown.js" defer></script>
   <script src="scripts/ai.js" defer></script>
   <script src="scripts/history.js" defer></script>
+  <script src="scripts/prompts.js" defer></script>
   <script src="scripts/chat.js" defer></script>
 </body>
 <!-- 首次加载：Chrome 扩展 → 开发者模式 → 加载已解压 → 选择本目录 -->
